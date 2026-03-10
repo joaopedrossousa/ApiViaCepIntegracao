@@ -1,6 +1,0 @@
-Cidade: Lajeado
-Estado: Tocantins
-Regiao: Norte
-DDD: 63
-
-

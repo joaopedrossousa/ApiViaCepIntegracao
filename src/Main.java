@@ -1,104 +1,78 @@
-import br.dev.viacep.InfoCep;
-import br.dev.viacep.InfoCepJson;
+import br.dev.viacep.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonSyntaxException;
-import java.io.FileWriter;
+
 import java.io.IOException;
-import java.net.URI;
-import java.net.URLEncoder;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 public class Main {
-    public static void main(String[] args) throws IOException, InterruptedException {
+    public static void main(String[] args) throws IOException, URISyntaxException {
 
         Scanner scanner = new Scanner(System.in);
 
-        System.out.println();
+        System.out.println("\nSeja bem vindo ao sistema de consulta de CEP :) \n");
 
-        System.out.println("Seja bem vindo ao sistema de consulta de CEP :)");
-
-        System.out.println();
-
-        String cepInformado = " ";
-
-        Gson gson = new GsonBuilder()
-                .setPrettyPrinting()
-                .create();
-
-        //criando lista para guardar coleção de dados
-        List<InfoCep> listaDados = new ArrayList<>();
+        int opcaoSelecionada;
 
         while (true) {
 
-            System.out.println("Informe o CEP que deseja consultar (Apenas Numeros): ");
+            System.out.println("[1] Informar CEP \n[2] CEP'S Consultados \n[3] Sair \nSelecione uma Opção: ");
 
-            cepInformado = scanner.nextLine();
+            opcaoSelecionada = scanner.nextInt();
+            scanner.nextLine();
 
-            if (cepInformado.length() > 8) {
-                System.out.println();
-                System.out.println("CEP invalido! (Apenas 8 digitos)");
-                continue;
-            }
+            if (opcaoSelecionada == 1) {
 
-            if (cepInformado.equalsIgnoreCase("sair")) {
-                System.out.println();
-                System.out.println("Sistema encerrado...");
-                break;
-            }
+                String cepInformado = " ";
+                ConsultaCep consultaCep = new ConsultaCep();
 
-            String cepInformadoEncodada = URLEncoder.encode(cepInformado, StandardCharsets.UTF_8);
+                while (true) {
 
-            String urlConsultaAPI = "https://viacep.com.br/ws/" + cepInformadoEncodada + "/json/";
+                    System.out.println("Informe o CEP que deseja consultar (Apenas Numeros): ");
 
-            try {
+                    cepInformado = scanner.nextLine();
 
-                //realizando a requisição na API
-                HttpClient client = HttpClient.newHttpClient();
+                    if (cepInformado.equalsIgnoreCase("sair")) {
+                        System.out.println("\nRetornando ao menu principal...");
+                        break;
+                    }
 
-                HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create(urlConsultaAPI))
-                        .build();
+                    if (cepInformado.length() > 8) {
+                        System.out.println("\nCEP invalido! (Apenas 8 digitos)");
+                        continue;
+                    }
 
-                HttpResponse<String> response = client
-                        .send(request, HttpResponse.BodyHandlers.ofString());
+                    try {
+                        InfoCepJson novaConsulta = consultaCep.buscarEnd(cepInformado);
+                        //System.out.println(novaConsulta);
+                        GeradorDeArquivo geradorDeArquivo = new GeradorDeArquivo();
+                        geradorDeArquivo.geradorDeArqJson(novaConsulta);
 
-                String json = response.body();
+                    } catch (RuntimeException e) {
+                        System.out.println(e.getMessage());
+                        System.out.println("\nEncerrando Consulta...");
+                        break;
+                    }
 
-                InfoCepJson infoCepJson = gson.fromJson(json, InfoCepJson.class);
+                    System.out.println("\nDigite SAIR para retornar ao menu principal.");
 
-                InfoCep infoCep = new InfoCep(infoCepJson);
-
-                System.out.println();
-                //saida da consulta da API
-                System.out.println(infoCep);
-
-                listaDados.add(infoCep);
-
-                //criando filewriter para salvar dados consultados em um JSON
-                FileWriter adicionarJson = new FileWriter("cepsConsultados.json");
-                adicionarJson.write(gson.toJson(listaDados));
-                adicionarJson.close();
-
-                FileWriter adicionarTxt = new FileWriter("cepsConsultados.txt");
-                for (InfoCep i : listaDados){
-                    adicionarTxt.write(i.toString() + "\n\n");
                 }
-                adicionarTxt.close();
-                System.out.println("Digite SAIR para encerrar o sistema.");
+            } else if (opcaoSelecionada == 3) {
+                System.out.println("\nEncerrando Sistema...");
+                break;
+            } else if (opcaoSelecionada == 2) {
 
-            } catch (JsonSyntaxException e) {
-                System.out.println("Erro ao consultar: " + e.getMessage());
+                MostrarArquivos mostrarArquivos = new MostrarArquivos();
 
-            } catch (IllegalArgumentException e){
-                System.out.println("Erro ao consultar: " + e.getMessage());
+                mostrarArquivos.mostrarConsultas();
+
+            }else{
+                System.out.println("\nOpção Invalida...");
             }
         }
     }
 }
+
