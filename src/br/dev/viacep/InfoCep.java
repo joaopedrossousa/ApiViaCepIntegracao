@@ -13,4 +13,11 @@ public class InfoCep {
         this.ddd = infoCepJson.ddd();
     }
 
+    @Override
+    public String toString() {
+        return "Cidade: " + nomeCidade + "\n" +
+                "Estado: " + nomeEstado + "\n" +
+                "Regiao: " + regiao + "\n" +
+                 "DDD: " + ddd + "\n";
+    }
 }
